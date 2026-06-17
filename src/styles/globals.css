@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+/* ─── Variables CSS globales ─────────────────────────────────── */
+:root {
+  --color-white:     #FAFAFA;
+  --color-pure:      #FFFFFF;
+  --color-black:     #111111;
+  --color-blush:     #E8D5CE;
+  --color-blush-md:  #D9BDB4;
+  --color-blush-dk:  #C4998C;
+  --color-blush-lt:  #F4EEEB;
+  --color-mid:       #7A6E6B;
+
+  --font-serif:  var(--font-cormorant), Georgia, serif;
+  --font-sans:   var(--font-jost), system-ui, sans-serif;
+
+  --ease-luxury: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-reveal:  cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* ─── Reset & base ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-white);
+  color: var(--color-black);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* ─── Sélection de texte stylisée ───────────────────────────── */
+::selection {
+  background-color: var(--color-blush);
+  color: var(--color-black);
+}
+
+/* ─── Scrollbar discrète ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-blush-lt); }
+::-webkit-scrollbar-thumb { background: var(--color-blush-md); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-blush-dk); }
+
+/* ─── Typographie de base ────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  line-height: 1.05;
+}
+
+p { font-family: var(--font-sans); font-weight: 300; }
+
+a { text-decoration: none; color: inherit; }
+
+img { display: block; max-width: 100%; }
+
+/* ─── Utilitaires ADORE ──────────────────────────────────────── */
+
+/* Texte uppercase espacé (labels, tags) */
+.adore-label {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: var(--color-blush-dk);
+}
+
+/* Titre serif principal */
+.adore-title {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  line-height: 1.08;
+}
+
+/* Ligne décorative horizontale */
+.adore-line {
+  display: block;
+  width: 48px;
+  height: 1px;
+  background-color: var(--color-blush-md);
+}
+
+/* Bouton principal (fond noir) */
+.adore-btn-primary {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  background-color: var(--color-black);
+  color: var(--color-white);
+  padding: 18px 56px;
+  transition: background-color 0.35s var(--ease-luxury);
+  cursor: pointer;
+  border: none;
+}
+.adore-btn-primary:hover { background-color: var(--color-mid); }
+
+/* Bouton outline (bordure blush) */
+.adore-btn-outline {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-blush-md);
+  color: var(--color-black);
+  padding: 14px 38px;
+  transition: all 0.35s var(--ease-luxury);
+  cursor: pointer;
+  background: transparent;
+}
+.adore-btn-outline:hover {
+  background-color: var(--color-blush);
+  border-color: var(--color-blush);
+}
+
+/* ─── Lenis smooth scroll ────────────────────────────────────── */
+html.lenis {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* ─── Masque de révélation image ─────────────────────────────── */
+.image-reveal-wrapper {
+  overflow: hidden;
+  position: relative;
+}
+.image-reveal-wrapper img {
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* ─── Curseur custom ─────────────────────────────────────────── */
+.cursor-dot {
+  position: fixed;
+  top: 0; left: 0;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-blush-dk);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s var(--ease-luxury), width 0.3s, height 0.3s;
+}
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(196,153,140,0.5);
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s var(--ease-luxury), width 0.35s, height 0.35s, border-color 0.3s;
+}
+
+/* ─── Page transition overlay ────────────────────────────────── */
+.page-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-blush);
+  z-index: 9990;
+  pointer-events: none;
+}
