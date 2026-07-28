@@ -101,7 +101,7 @@ async function writeConfig(filename: string, data: object): Promise<void> {
       contentType: "application/json",
       addRandomSuffix: false,
       allowOverwrite: true,
-      cacheControlMaxAge: 0,
+      cacheControlMaxAge: 60,
     });
     return;
   }
