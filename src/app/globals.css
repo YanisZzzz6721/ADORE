@@ -1,26 +1,208 @@
 @import "tailwindcss";
 
+/* ─── Variables ADORE ────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-white:    #FAFAFA;
+  --color-pure:     #FFFFFF;
+  --color-black:    #111111;
+  --color-blush:    #E8D5CE;
+  --color-blush-md: #D9BDB4;
+  --color-blush-dk: #C4998C;
+  --color-blush-lt: #F4EEEB;
+  --color-mid:      #7A6E6B;
+
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-sans:  var(--font-jost), system-ui, sans-serif;
+
+  --ease-luxury: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-reveal:  cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ─── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  position: relative;
 }
+
+/* ─── Contenir les sections plein écran ─────────────────────── */
+section {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ─── Utilitaires responsive fiables ────────────────────────── */
+/* mobile-only : visible sur mobile, caché sur desktop */
+.mobile-only        { display: block; }
+/* desktop-only : caché sur mobile, visible sur desktop */
+.desktop-only       { display: none !important; }
+.desktop-only-block  { display: none !important; }
+.desktop-only-inline { display: none !important; }
+.desktop-only-grid   { display: none !important; }
+
+@media (min-width: 1024px) {
+  .mobile-only         { display: none !important; }
+  .desktop-only        { display: flex !important; }
+  .desktop-only-block  { display: block !important; }
+  .desktop-only-inline { display: inline-block !important; }
+}
+
+@media (min-width: 768px) {
+  .desktop-md-only    { display: block !important; }
+  .desktop-md-grid    { display: grid !important; }
+  .mobile-md-only     { display: none !important; }
+}
+
+/* ─── RESPONSIVE MOBILE ──────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Navigation */
+  nav {
+    padding: 20px 24px !important;
+  }
+
+  /* Hero */
+  #hero {
+    height: 100svh;
+  }
+
+  /* Citation */
+  section[style*="padding: 80px 64px"] {
+    padding: 56px 24px !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+  }
+
+  /* Maison — stack vertical */
+  #maison {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #maison > div:first-child {
+    min-height: 300px !important;
+    width: 100% !important;
+  }
+  #maison > div:last-child {
+    padding: 56px 24px !important;
+  }
+
+  /* Savoir-faire */
+  #savoir-faire {
+    padding: 80px 24px !important;
+  }
+  #savoir-faire > div:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    margin-bottom: 48px !important;
+  }
+  #savoir-faire > div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Galerie */
+  #galerie {
+    padding: 80px 0 !important;
+  }
+  #galerie > div:first-child {
+    padding: 0 24px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    margin-bottom: 40px !important;
+  }
+  /* Grille galerie → colonne unique */
+  #galerie > div:nth-child(2) {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 0 3px !important;
+  }
+  #galerie > div:nth-child(2) > div {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    height: 220px !important;
+  }
+  #galerie > div:last-child {
+    padding: 40px 24px 0 !important;
+  }
+
+  /* CTA section */
+  section[id=""] > div,
+  .cta-content {
+    padding: 60px 24px !important;
+  }
+
+  /* Contact */
+  #contact {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 80px 24px !important;
+    gap: 48px !important;
+  }
+  #contact > div:last-child {
+    min-height: 280px !important;
+    width: 100% !important;
+  }
+
+  /* Footer */
+  footer > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 48px 24px !important;
+    gap: 28px !important;
+  }
+  footer ul {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Coins décoratifs — masquer sur mobile */
+  .hero-corner, [style*="top: 110"][style*="left: 64"],
+  [style*="bottom: 80"][style*="right: 64"] {
+    display: none !important;
+  }
+
+  /* Bouton flottant */
+  .floating-cta {
+    bottom: 20px !important;
+    right: 20px !important;
+  }
+}
+
+/* ─── Sélection de texte ─────────────────────────────────────── */
+::selection { background-color: var(--color-blush); color: var(--color-black); }
+
+/* ─── Scrollbar discrète ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-blush-lt); }
+::-webkit-scrollbar-thumb { background: var(--color-blush-md); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-blush-dk); }
+
+/* ─── Typographie ────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  line-height: 1.05;
+}
+p { font-family: var(--font-sans); font-weight: 300; }
+a { text-decoration: none; color: inherit; }
+img { display: block; max-width: 100%; }
+

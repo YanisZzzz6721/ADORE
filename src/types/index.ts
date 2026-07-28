@@ -2,12 +2,28 @@
 
 export interface Service {
   id: string;
-  num: string;           // "I", "II", "III"
+  num: string;
   name: string;
   description: string;
   price: string;
   imageSrc?: string;
   imageAlt?: string;
+}
+
+export interface ServiceItem {
+  id: string;
+  name: string;
+  duration: string;
+  price: string;
+}
+
+export interface ServiceCategory {
+  id: string;
+  num: string;
+  label: string;
+  title: string;
+  subtitle: string;
+  items: ServiceItem[];
 }
 
 export interface GalleryImage {

@@ -1,0 +1,14 @@
+{
+  "hero": "/salon.JPG",
+  "maison": "/salon.JPG",
+  "prestation_mains": "/uploads/prestation_mains-1784046981330.jpg",
+  "prestation_pieds": "/uploads/prestation_pieds-1784046969258.jpg",
+  "galerie": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    "/uploads/galerie-5-1784033707911.jpg"
+  ]
+}

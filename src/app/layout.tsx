@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
-import "@/styles/globals.css";
+import "./globals.css";
+import { siteConfig } from "@/lib/config";
+import SmoothScroll from "@/components/ui/SmoothScroll";
+import Navigation from "@/components/layout/Navigation";
+import FloatingCTA from "@/components/ui/FloatingCTA";
+import CustomCursor from "@/components/ui/CustomCursor";
 
 // ─── Google Fonts ─────────────────────────────────────────────
 const cormorant = Cormorant_Garamond({
@@ -29,18 +34,18 @@ export const metadata: Metadata = {
     template: "%s | ADORE Strasbourg",
   },
   description:
-    "ADORE est une maison de manucure haut de gamme à Strasbourg. Manucure prestige, nail art exclusif et soins régénérants. Sur rendez-vous au 5 Place Arnold.",
+    "ADORE est une maison de manucure haut de gamme à Strasbourg. Manucure russe, beauté des pieds et nail art sur mesure. Sur rendez-vous au 10 Rue Kuhn.",
 
   keywords: [
     "manucure Strasbourg",
+    "manucure russe Strasbourg",
     "nail art Strasbourg",
     "onglerie luxe Strasbourg",
     "semi-permanent Strasbourg",
-    "gel ongles Strasbourg",
+    "beauté des pieds Strasbourg",
     "soin mains Strasbourg",
     "ADORE manucure",
-    "nail art haut de gamme",
-    "onglerie Place Arnold Strasbourg",
+    "onglerie Rue Kuhn Strasbourg",
   ],
 
   authors: [{ name: "ADORE — Maison de Manucure" }],
@@ -54,7 +59,7 @@ export const metadata: Metadata = {
     siteName: "ADORE — Maison de Manucure",
     title: "ADORE — Maison de Manucure à Strasbourg",
     description:
-      "Un sanctuaire dédié à l'élégance des mains. Manucure prestige, nail art exclusif, soins régénérants. Strasbourg, 5 Place Arnold.",
+      "Un sanctuaire dédié à l'élégance des mains. Manucure russe, beauté des pieds, nail art sur mesure. Strasbourg, 10 Rue Kuhn.",
     images: [
       {
         url: "/og-image.jpg",
@@ -97,36 +102,42 @@ export const viewport: Viewport = {
 };
 
 // ─── Schema.org JSON-LD — référencement local Strasbourg ──────
+// Construit à partir de siteConfig : une seule source de vérité pour
+// l'adresse et les horaires, impossible de les voir diverger du site.
+const WEEKDAY_SCHEMA: Record<string, string> = {
+  Lundi: "Monday",
+  Mardi: "Tuesday",
+  Mercredi: "Wednesday",
+  Jeudi: "Thursday",
+  Vendredi: "Friday",
+  Samedi: "Saturday",
+  Dimanche: "Sunday",
+};
+
+const openDays = siteConfig.hours.filter((h) => !h.closed);
+
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "BeautySalon",
   name: "ADORE — Maison de Manucure",
-  description:
-    "Maison de manucure haut de gamme à Strasbourg. Manucure prestige, nail art exclusif et soins régénérants.",
+  description: siteConfig.description,
   url: "https://adore-strasbourg.fr",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "5 Place Arnold",
-    addressLocality: "Strasbourg",
-    postalCode: "67000",
+    streetAddress: siteConfig.address.street,
+    addressLocality: siteConfig.address.city,
+    postalCode: siteConfig.address.postalCode,
     addressCountry: "FR",
   },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: 48.5734053,
-    longitude: 7.7521113,
-  },
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      opens: "10:00",
-      closes: "19:00",
-    },
-  ],
-  priceRange: "€€€",
+  openingHoursSpecification: openDays.map((h) => ({
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: WEEKDAY_SCHEMA[h.day] ?? h.day,
+    opens: h.open,
+    closes: h.close,
+  })),
+  priceRange: "€€",
   image: "https://adore-strasbourg.fr/og-image.jpg",
-  sameAs: ["https://www.instagram.com/adore.nails.strasbourg"],
+  sameAs: [siteConfig.instagram, siteConfig.planityUrl],
 };
 
 // ─── Root Layout ──────────────────────────────────────────────
@@ -144,7 +155,12 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#FAFAFA] text-[#111111] antialiased overflow-x-hidden">
-        {children}
+        <SmoothScroll>
+          <Navigation />
+          {children}
+          <FloatingCTA />
+          <CustomCursor />
+        </SmoothScroll>
       </body>
     </html>
   );
