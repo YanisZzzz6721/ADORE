@@ -2,10 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/lib/config";
-import SmoothScroll from "@/components/ui/SmoothScroll";
-import Navigation from "@/components/layout/Navigation";
-import FloatingCTA from "@/components/ui/FloatingCTA";
-import CustomCursor from "@/components/ui/CustomCursor";
+import SiteShell from "@/components/layout/SiteShell";
 
 // ─── Google Fonts ─────────────────────────────────────────────
 const cormorant = Cormorant_Garamond({
@@ -155,12 +152,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#FAFAFA] text-[#111111] antialiased overflow-x-hidden">
-        <SmoothScroll>
-          <Navigation />
-          {children}
-          <FloatingCTA />
-          <CustomCursor />
-        </SmoothScroll>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );
