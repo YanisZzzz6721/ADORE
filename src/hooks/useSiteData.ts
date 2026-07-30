@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  createElement,
+  useContext,
+  type ReactNode,
+} from "react";
 import {
   DEFAULT_CONTENT,
   DEFAULT_IMAGES,
@@ -12,9 +17,28 @@ const FALLBACK: SiteData = {
   content: DEFAULT_CONTENT,
 };
 
-// Cinq composants consomment ces données : on mémorise la promesse pour ne
-// déclencher qu'un seul appel réseau par chargement de page.
 let inFlight: Promise<SiteData> | null = null;
+const SiteDataContext = createContext<SiteData | null>(null);
+
+/**
+ * Quoi : partage les données récupérées côté serveur avec toutes les sections.
+ * Input : initialData — données Blob du rendu initial ; children — sections du site.
+ * Output : fournisseur de contexte React.
+ * Effets de bord : initialise un contexte React partagé.
+ */
+export function SiteDataProvider({
+  initialData,
+  children,
+}: {
+  initialData: SiteData;
+  children: ReactNode;
+}) {
+  return createElement(
+    SiteDataContext.Provider,
+    { value: initialData },
+    children,
+  );
+}
 
 /**
  * Quoi  : charge (une seule fois) les images et textes du site depuis l'API.
@@ -47,26 +71,12 @@ export function loadSiteData(force = false): Promise<SiteData> {
 }
 
 /**
- * Quoi  : expose les données du site à un composant React.
+ * Quoi : expose les données déjà injectées par le rendu serveur.
  * Input : aucun.
- * Output: { images, content, loading }.
- * Effets: déclenche loadSiteData au montage.
+ * Output : images, textes et loading=false.
+ * Effets de bord : lit le contexte React courant.
  */
 export function useSiteData() {
-  const [data, setData] = useState<SiteData>(FALLBACK);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    loadSiteData().then((loaded) => {
-      if (!mounted) return;
-      setData(loaded);
-      setLoading(false);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  return { ...data, loading };
+  const data = useContext(SiteDataContext);
+  return { ...(data ?? FALLBACK), loading: false };
 }

@@ -81,13 +81,13 @@ export default function Navigation() {
             src="/logo.png"
             alt="ADORE"
             width={36}
-            height={44}
+            height={62}
             className="desktop-only-block"
             style={{
               objectFit: "contain",
               filter: isTransparent ? "brightness(0) invert(1)" : "none",
             }}
-            priority
+            loading="eager"
           />
           {/* Mobile : texte ADORE — positionné en absolu pour être vraiment centré */}
           <span

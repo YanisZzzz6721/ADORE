@@ -140,7 +140,7 @@ export default function GalerieSection() {
                   src={src}
                   alt={`Réalisation ${cell.idx + 1}`}
                   fill
-                  unoptimized
+                  sizes="(max-width: 767px) 50vw, 40vw"
                   style={{
                     objectFit: "cover",
                     transition: "transform 0.5s ease",
@@ -225,7 +225,7 @@ export default function GalerieSection() {
                   src={src}
                   alt={`Réalisation ${i + 1}`}
                   fill
-                  unoptimized
+                  sizes="50vw"
                   style={{ objectFit: "cover" }}
                 />
               ) : (

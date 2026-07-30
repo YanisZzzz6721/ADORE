@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { readSiteContent, writeSiteContent } from "@/lib/storage";
+import { invalidateSiteDataCache } from "@/lib/site-data-server";
 import { TEXT_FIELDS, type SiteContent } from "@/lib/site-data";
 
 export const dynamic = "force-dynamic";
@@ -97,6 +98,7 @@ export async function POST(req: NextRequest) {
     const current = await readSiteContent();
     const next = { ...current, ...parsed.updates };
     await writeSiteContent(next);
+    invalidateSiteDataCache();
     return NextResponse.json({ ok: true, content: next });
   } catch (error) {
     console.error("[content] écriture impossible :", error);

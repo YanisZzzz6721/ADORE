@@ -1,6 +1,8 @@
+import { randomUUID } from "crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { readSiteImages, writeSiteImages, saveImage } from "@/lib/storage";
+import { invalidateSiteDataCache } from "@/lib/site-data-server";
 import {
   FIXED_IMAGE_SLOTS,
   GALERIE_SLOTS,
@@ -15,8 +17,48 @@ const EXTENSION_BY_MIME: Record<string, string> = {
   "image/webp": "webp",
 };
 
-const MAX_BYTES = 8 * 1024 * 1024; // 8 Mo
+const MAX_BYTES = 4 * 1024 * 1024; // Sous la limite de 4,5 Mo de Vercel Functions.
 const GALERIE_SLOT_PATTERN = new RegExp(`^galerie-([0-${GALERIE_SLOTS - 1}])$`);
+
+/**
+ * Quoi : contrôle que les premiers octets correspondent réellement au MIME annoncé.
+ * Input : buffer — contenu du fichier ; contentType — type MIME déclaré.
+ * Output : true uniquement pour une signature JPEG, PNG ou WebP valide.
+ * Effets de bord : aucun (fonction pure).
+ */
+function hasValidImageSignature(
+  buffer: Buffer,
+  contentType: string,
+): boolean {
+  if (contentType === "image/jpeg") {
+    return (
+      buffer.length >= 3 &&
+      buffer[0] === 0xff &&
+      buffer[1] === 0xd8 &&
+      buffer[2] === 0xff
+    );
+  }
+
+  if (contentType === "image/png") {
+    const pngSignature = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    return (
+      buffer.length >= pngSignature.length &&
+      buffer.subarray(0, pngSignature.length).equals(pngSignature)
+    );
+  }
+
+  if (contentType === "image/webp") {
+    return (
+      buffer.length >= 12 &&
+      buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+      buffer.subarray(8, 12).toString("ascii") === "WEBP"
+    );
+  }
+
+  return false;
+}
 
 /**
  * Quoi  : valide l'emplacement demandé contre une liste blanche stricte.
@@ -71,7 +113,16 @@ export async function POST(req: NextRequest) {
   const denied = requireAdmin(req);
   if (denied) return denied;
 
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return NextResponse.json(
+      { error: "Formulaire d'upload illisible." },
+      { status: 400 },
+    );
+  }
+
   const file = form.get("file");
   const slotRaw = form.get("slot");
 
@@ -108,18 +159,26 @@ export async function POST(req: NextRequest) {
   if (file.size > MAX_BYTES) {
     const mo = (file.size / 1024 / 1024).toFixed(1);
     return NextResponse.json(
-      { error: `Image trop lourde (${mo} Mo) — 8 Mo maximum.` },
+      { error: `Image trop lourde (${mo} Mo) — 4 Mo maximum.` },
       { status: 413 },
     );
   }
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer());
-    const filename = `${slotRaw}-${Date.now()}.${extension}`;
+    if (!hasValidImageSignature(buffer, file.type)) {
+      return NextResponse.json(
+        { error: "Le contenu du fichier ne correspond pas à une image valide." },
+        { status: 400 },
+      );
+    }
+
+    const filename = `${slotRaw}-${randomUUID()}.${extension}`;
     const url = await saveImage(filename, buffer, file.type);
 
     const images = await readSiteImages();
     await writeSiteImages(applySlot(images, slot, url));
+    invalidateSiteDataCache();
 
     return NextResponse.json({ url });
   } catch (error) {

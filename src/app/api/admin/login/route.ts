@@ -4,6 +4,7 @@ import {
   SESSION_TTL_SECONDS,
   checkPassword,
   createSessionToken,
+  requireSameOrigin,
 } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -13,25 +14,57 @@ export const dynamic = "force-dynamic";
 // rempart reste un mot de passe long.
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_ATTEMPTS = 8;
+const MAX_TRACKED_CLIENTS = 10_000;
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
 /**
- * Quoi  : compte les tentatives ratées d'une IP sur une fenêtre glissante.
+ * Quoi : retire les compteurs expirés et borne la mémoire utilisée.
+ * Input : now — horodatage courant.
+ * Output : aucun.
+ * Effets de bord : supprime des entrées de la table d'attaques en mémoire.
+ */
+function pruneAttempts(now: number): void {
+  for (const [ip, entry] of attempts) {
+    if (entry.resetAt <= now) attempts.delete(ip);
+  }
+
+  while (attempts.size >= MAX_TRACKED_CLIENTS) {
+    const oldestIp = attempts.keys().next().value;
+    if (typeof oldestIp !== "string") return;
+    attempts.delete(oldestIp);
+  }
+}
+
+/**
+ * Quoi : indique si une IP a épuisé son quota de tentatives ratées.
  * Input : ip — identifiant de l'appelant.
  * Output: true si l'IP a dépassé le quota.
- * Effets: mutation de la table d'attaques en mémoire.
+ * Effets: purge les compteurs expirés.
  */
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
+  pruneAttempts(now);
+  const entry = attempts.get(ip);
+  return Boolean(entry && entry.count >= MAX_ATTEMPTS);
+}
+
+/**
+ * Quoi : comptabilise une authentification échouée pour une IP.
+ * Input : ip — identifiant de l'appelant.
+ * Output : aucun.
+ * Effets de bord : ajoute ou incrémente une entrée de la table d'attaques.
+ */
+function recordFailedAttempt(ip: string): void {
+  const now = Date.now();
+  pruneAttempts(now);
   const entry = attempts.get(ip);
 
-  if (!entry || entry.resetAt < now) {
+  if (!entry) {
     attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
+    return;
   }
 
   entry.count += 1;
-  return entry.count > MAX_ATTEMPTS;
 }
 
 /**
@@ -52,6 +85,9 @@ function clientIp(req: NextRequest): string {
  * Effets: pose le cookie de session.
  */
 export async function POST(req: NextRequest) {
+  const invalidOrigin = requireSameOrigin(req);
+  if (invalidOrigin) return invalidOrigin;
+
   if (!process.env.ADMIN_PASSWORD) {
     return NextResponse.json(
       { error: "ADMIN_PASSWORD n'est pas configuré sur le serveur." },
@@ -59,7 +95,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (isRateLimited(clientIp(req))) {
+  const ip = clientIp(req);
+  if (isRateLimited(ip)) {
     return NextResponse.json(
       { error: "Trop de tentatives — réessayez dans 10 minutes." },
       { status: 429 },
@@ -75,13 +112,14 @@ export async function POST(req: NextRequest) {
 
   const password = (body as { password?: unknown })?.password;
   if (!checkPassword(password)) {
+    recordFailedAttempt(ip);
     return NextResponse.json(
       { error: "Mot de passe incorrect." },
       { status: 401 },
     );
   }
 
-  attempts.delete(clientIp(req));
+  attempts.delete(ip);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set({
@@ -102,7 +140,10 @@ export async function POST(req: NextRequest) {
  * Output: { ok: true }.
  * Effets: supprime le cookie de session.
  */
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const invalidOrigin = requireSameOrigin(req);
+  if (invalidOrigin) return invalidOrigin;
+
   const res = NextResponse.json({ ok: true });
   res.cookies.set({
     name: SESSION_COOKIE,

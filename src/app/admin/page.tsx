@@ -14,6 +14,12 @@ import { loadSiteData } from "@/hooks/useSiteData";
 
 type UploadState = "idle" | "uploading" | "done" | "error";
 type SaveState = "idle" | "saving" | "saved" | "error";
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const ALLOWED_UPLOAD_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
 
 // ─── Composant slot upload ─────────────────────────────────────
 /**
@@ -45,6 +51,22 @@ function UploadSlot({
 
   const handleFile = useCallback(
     async (file: File) => {
+      if (!(ALLOWED_UPLOAD_TYPES as readonly string[]).includes(file.type)) {
+        setStatus("error");
+        setError("Format non supporté — JPG, PNG ou WEBP uniquement.");
+        return;
+      }
+
+      if (file.size === 0 || file.size > MAX_UPLOAD_BYTES) {
+        setStatus("error");
+        setError(
+          file.size === 0
+            ? "Le fichier est vide."
+            : "Image trop lourde — 4 Mo maximum.",
+        );
+        return;
+      }
+
       setPreview(URL.createObjectURL(file));
       setStatus("uploading");
       setError(null);

@@ -13,8 +13,8 @@ interface RevealImageProps {
   className?: string;
   containerClassName?: string;
   delay?: number;
-  priority?: boolean;
   objectFit?: "cover" | "contain";
+  sizes?: string;
 }
 
 export default function RevealImage({
@@ -26,8 +26,8 @@ export default function RevealImage({
   className,
   containerClassName,
   delay = 0,
-  priority = false,
   objectFit = "cover",
+  sizes,
 }: RevealImageProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "0px 0px -60px 0px" });
@@ -62,7 +62,7 @@ export default function RevealImage({
 
       {/* Image avec zoom léger au reveal */}
       <motion.div
-        style={{ width: "100%", height: "100%" }}
+        style={{ position: "relative", width: "100%", height: "100%" }}
         initial={{ scale: 1.08 }}
         animate={isInView ? { scale: 1 } : { scale: 1.08 }}
         transition={{
@@ -77,7 +77,7 @@ export default function RevealImage({
           width={fill ? undefined : width}
           height={fill ? undefined : height}
           fill={fill}
-          priority={priority}
+          sizes={sizes}
           className={className}
           style={{ objectFit }}
         />

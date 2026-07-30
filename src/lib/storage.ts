@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { put, list } from "@vercel/blob";
 import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -14,6 +15,7 @@ const IMAGES_FILE = "site-images.json";
 const CONTENT_FILE = "site-content.json";
 const BLOB_CONFIG_PREFIX = "site-config/";
 const BLOB_UPLOADS_PREFIX = "uploads/";
+const IMMUTABLE_CACHE_SECONDS = 31_536_000;
 
 const PUBLIC_DIR = path.join(process.cwd(), "public");
 const UPLOADS_DIR = path.join(PUBLIC_DIR, "uploads");
@@ -29,27 +31,79 @@ export function isBlobEnabled(): boolean {
 }
 
 /**
- * Quoi  : lit un JSON de configuration depuis Vercel Blob.
- * Input : filename — nom du fichier de config.
- * Output: l'objet parsé, ou null si aucun blob n'existe encore.
- * Effets: appels réseau à l'API Blob (list puis fetch du contenu).
+ * Quoi  : construit le dossier des versions immuables d'une configuration.
+ * Input : filename — nom historique du fichier JSON.
+ * Output: préfixe Blob propre à cette configuration.
+ * Effets: aucun (fonction pure).
  */
-async function readJsonFromBlob(filename: string): Promise<unknown | null> {
-  const pathname = `${BLOB_CONFIG_PREFIX}${filename}`;
-  const { blobs } = await list({ prefix: pathname, limit: 1 });
-  const blob = blobs.find((b) => b.pathname === pathname);
-  if (!blob) return null;
+function getVersionedConfigPrefix(filename: string): string {
+  return `${BLOB_CONFIG_PREFIX}${filename.replace(/\.json$/u, "")}/`;
+}
 
-  // L'URL publique est servie par le CDN : on la casse avec la date d'upload
-  // pour être certain de lire la dernière version après une modification.
-  const freshUrl = `${blob.url}?v=${blob.uploadedAt.getTime()}`;
-  const res = await fetch(freshUrl, { cache: "no-store" });
+/**
+ * Quoi  : crée un chemin Blob unique dont l'ordre alphabétique place la version
+ *         la plus récente en premier.
+ * Input : filename — nom de la configuration ; now — horodatage courant.
+ * Output: chemin Blob immuable et non devinable.
+ * Effets: génère un UUID cryptographiquement aléatoire.
+ */
+function createVersionedConfigPath(
+  filename: string,
+  now = Date.now(),
+): string {
+  const reverseTimestamp = (Number.MAX_SAFE_INTEGER - now)
+    .toString()
+    .padStart(16, "0");
+  return `${getVersionedConfigPrefix(filename)}${reverseTimestamp}-${randomUUID()}.json`;
+}
+
+/**
+ * Quoi  : lit et décode le JSON d'un Blob public.
+ * Input : url — URL publique unique ; pathname — chemin utilisé dans les erreurs.
+ * Output: contenu JSON décodé.
+ * Effets: appel HTTP au CDN Vercel Blob.
+ */
+async function fetchBlobJson(url: string, pathname: string): Promise<unknown> {
+  const res = await fetch(url, { cache: "force-cache" });
   if (!res.ok) {
     throw new Error(
       `Lecture du blob ${pathname} impossible (HTTP ${res.status}).`,
     );
   }
   return res.json();
+}
+
+/**
+ * Quoi  : lit la dernière version d'un JSON depuis Vercel Blob, avec reprise
+ *         compatible sur l'ancien fichier unique.
+ * Input : filename — nom historique du fichier de configuration.
+ * Output: l'objet parsé, ou null si aucun blob n'existe encore.
+ * Effets: appels réseau à l'API Blob puis au CDN public.
+ */
+async function readJsonFromBlob(filename: string): Promise<unknown | null> {
+  const versionedPrefix = getVersionedConfigPrefix(filename);
+  const { blobs: versions } = await list({
+    prefix: versionedPrefix,
+    limit: 1,
+  });
+  const latest = versions[0];
+
+  if (latest) {
+    return fetchBlobJson(latest.url, latest.pathname);
+  }
+
+  const legacyPathname = `${BLOB_CONFIG_PREFIX}${filename}`;
+  const { blobs: legacyBlobs } = await list({
+    prefix: legacyPathname,
+    limit: 1,
+  });
+  const legacy = legacyBlobs.find(
+    (blob) => blob.pathname === legacyPathname,
+  );
+  if (!legacy) return null;
+
+  const freshLegacyUrl = `${legacy.url}?v=${legacy.uploadedAt.getTime()}`;
+  return fetchBlobJson(freshLegacyUrl, legacy.pathname);
 }
 
 /**
@@ -96,12 +150,12 @@ async function writeConfig(filename: string, data: object): Promise<void> {
   const body = JSON.stringify(data, null, 2);
 
   if (isBlobEnabled()) {
-    await put(`${BLOB_CONFIG_PREFIX}${filename}`, body, {
+    await put(createVersionedConfigPath(filename), body, {
       access: "public",
       contentType: "application/json",
       addRandomSuffix: false,
-      allowOverwrite: true,
-      cacheControlMaxAge: 60,
+      allowOverwrite: false,
+      cacheControlMaxAge: 31536000,
     });
     return;
   }
@@ -145,7 +199,8 @@ export async function saveImage(
       access: "public",
       contentType,
       addRandomSuffix: false,
-      allowOverwrite: true,
+      allowOverwrite: false,
+      cacheControlMaxAge: IMMUTABLE_CACHE_SECONDS,
     });
     return blob.url;
   }

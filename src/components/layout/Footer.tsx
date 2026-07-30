@@ -35,7 +35,7 @@ export default function Footer() {
             src="/logo.png"
             alt="ADORE"
             width={36}
-            height={44}
+            height={62}
             style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.7 }}
           />
 

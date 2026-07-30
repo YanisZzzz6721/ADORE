@@ -51,7 +51,8 @@ export default function HeroSection() {
           src={images.hero}
           alt="ADORE — Maison de Manucure Strasbourg"
           fill
-          priority
+          preload
+          sizes="100vw"
           style={{ objectFit: "cover", objectPosition: "center" }}
         />
         <div
@@ -173,8 +174,8 @@ export default function HeroSection() {
             src="/logo.png"
             alt="ADORE"
             width={160}
-            height={196}
-            priority
+            height={274}
+            loading="eager"
             style={{
               objectFit: "contain",
               filter: "brightness(0) invert(1)",

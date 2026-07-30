@@ -32,7 +32,7 @@ export default function MaisonSection() {
             alt="Salon ADORE — Maison de Manucure Strasbourg"
             fill
             delay={0.1}
-            priority
+            sizes="(max-width: 959px) 100vw, 50vw"
           />
           {/* Cadre ornemental — masqué sur mobile */}
           <div

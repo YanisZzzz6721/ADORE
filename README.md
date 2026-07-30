@@ -70,24 +70,17 @@ Ces données vivent dans [`src/lib/config.ts`](src/lib/config.ts) → `serviceCa
 
 | Techno | Version | Note |
 |---|---|---|
-| Next.js | **16.2.9** | App Router |
+| Next.js | **16.2.12** | App Router |
 | React | 19.2.4 | |
 | TypeScript | ^5 | strict |
 | Tailwind CSS | **v4** | ⚠️ voir conventions critiques |
 | Framer Motion | ^12.40 | toutes les animations |
-| @vercel/blob | ^2.6.1 | **installé mais pas encore câblé** |
+| @vercel/blob | ^2.6.1 | stockage public des photos et configurations versionnées |
 
-### Dépendances installées mais inutilisées
+### Dépendances nettoyées
 
-À supprimer, ou à câbler si le besoin revient — elles alourdissent le bundle pour rien :
-
-- `next-sanity` + `@sanity/image-url` — Sanity CMS avait été envisagé, puis abandonné
-  au profit d'un admin maison. **Aucun code Sanity dans `src/`.**
-- `@studio-freight/lenis` — le smooth scroll Lenis a été **retiré** (il rendait le scroll
-  atrocement lent). `SmoothScroll.tsx` est désormais un simple passthrough.
-  Restent quelques traces mortes : CSS `.lenis` dans le fichier orphelin
-  `src/styles/globals.css`, et une branche `window.lenis` dans `FloatingCTA.tsx`
-  (inoffensive, elle a un fallback `window.scrollTo`).
+`next-sanity`, `@sanity/image-url` et `@studio-freight/lenis` ont été retirés :
+aucun de ces paquets n'était utilisé par le code exécuté.
 
 ---
 
@@ -406,21 +399,17 @@ au profit du domaine Vercel Blob.
 
 Par ordre de priorité :
 
-1. **Sécuriser les routes API** (cf. problème n°1) — bloquant avant toute mise en ligne.
-2. **Migrer le stockage vers Vercel Blob + KV** (cf. problème n°3) — bloquant pour que
-   l'admin serve à quelque chose en production.
-3. **Corriger l'adresse dans le SEO et la carte** (cf. problème n°2).
-4. Déploiement Vercel : connecter le dépôt, définir `ADMIN_PASSWORD` dans les variables
+1. **Corriger l'adresse dans le SEO et la carte** (cf. problème n°2).
+2. Déploiement Vercel : connecter le dépôt, définir `ADMIN_PASSWORD` dans les variables
    d'environnement du projet (le `.env.local` est gitignored et ne monte pas tout seul).
-5. Remplacer les photos restantes par de vraies photos du salon (5 slots galerie sur 6
+3. Remplacer les photos restantes par de vraies photos du salon (5 slots galerie sur 6
    sont encore vides).
-6. Rendre les avis Planity éditables depuis l'admin (aujourd'hui en dur dans
+4. Rendre les avis Planity éditables depuis l'admin (aujourd'hui en dur dans
    `TemoignagesSection.tsx`).
-7. Nettoyage : supprimer `src/styles/globals.css`, désinstaller `next-sanity`,
-   `@sanity/image-url` et `@studio-freight/lenis`.
-8. Audit Lighthouse (objectif 95+), génération de `og-image.jpg`, `favicon.ico`
+5. Nettoyage : supprimer le fichier orphelin `src/styles/globals.css`.
+6. Audit Lighthouse (objectif 95+), génération de `og-image.jpg`, `favicon.ico`
    et `apple-touch-icon.png` — référencés dans les metadata mais absents de `public/`.
-9. Achat et branchement du nom de domaine (`adore-strasbourg.fr` est codé en dur
+7. Achat et branchement du nom de domaine (`adore-strasbourg.fr` est codé en dur
    comme `metadataBase`, sitemap et JSON-LD).
 
 ---

@@ -56,7 +56,7 @@ function CategoryCard({
             src={imageSrc}
             alt={category.label}
             fill
-            unoptimized
+            sizes="(max-width: 767px) 100vw, 50vw"
             style={{ objectFit: "cover", transition: "transform 0.5s ease" }}
           />
         ) : (

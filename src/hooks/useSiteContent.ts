@@ -8,7 +8,7 @@ export type { SiteContent } from "@/lib/site-data";
  * Quoi  : expose les textes éditables du site (tagline, citation, La Maison).
  * Input : aucun.
  * Output: { content, loading }.
- * Effets: déclenche le chargement partagé des données du site.
+ * Effets: lit le contexte partagé des données du site.
  */
 export function useSiteContent() {
   const { content, loading } = useSiteData();

@@ -88,12 +88,64 @@ export function isValidSessionToken(token: string | undefined): boolean {
 }
 
 /**
+ * Quoi : vérifie que la requête d'écriture provient du même site.
+ * Input : req — requête Next.js contenant les en-têtes Origin et Host.
+ * Output : true si protocole et hôte correspondent exactement.
+ * Effets de bord : aucun (fonction pure).
+ */
+function isSameOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return false;
+
+  try {
+    const originUrl = new URL(origin);
+    const forwardedHost = req.headers
+      .get("x-forwarded-host")
+      ?.split(",")[0]
+      ?.trim();
+    const expectedHost =
+      forwardedHost || req.headers.get("host") || req.nextUrl.host;
+    const forwardedProtocol = req.headers
+      .get("x-forwarded-proto")
+      ?.split(",")[0]
+      ?.trim();
+    const expectedProtocol =
+      forwardedProtocol || req.nextUrl.protocol.replace(":", "");
+
+    return (
+      originUrl.host === expectedHost &&
+      originUrl.protocol === `${expectedProtocol}:`
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Quoi : refuse une mutation sans en-tête Origin valide du site courant.
+ * Input : req — requête entrante.
+ * Output : null si l'origine est sûre, sinon une réponse HTTP 403.
+ * Effets de bord : aucun.
+ */
+export function requireSameOrigin(req: NextRequest): NextResponse | null {
+  if (isSameOrigin(req)) return null;
+
+  return NextResponse.json(
+    { error: "Origine de requête non autorisée." },
+    { status: 403 },
+  );
+}
+
+/**
  * Quoi  : garde-fou des routes d'écriture — bloque toute requête non authentifiée.
  * Input : req — la requête entrante.
  * Output: null si l'accès est autorisé, sinon la réponse d'erreur à renvoyer telle quelle.
  * Effets: aucun.
  */
 export function requireAdmin(req: NextRequest): NextResponse | null {
+  const invalidOrigin = requireSameOrigin(req);
+  if (invalidOrigin) return invalidOrigin;
+
   if (!process.env.ADMIN_PASSWORD) {
     return NextResponse.json(
       { error: "ADMIN_PASSWORD n'est pas configuré sur le serveur." },
