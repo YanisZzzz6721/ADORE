@@ -51,14 +51,8 @@ export default function GalerieSection() {
         <div>
           <FadeInUp delay={0.05}>
             <span
+              className="section-eyebrow"
               style={{
-                display: "block",
-                fontSize: "9px",
-                fontFamily: "var(--font-jost), system-ui, sans-serif",
-                fontWeight: 300,
-                letterSpacing: "0.55em",
-                textTransform: "uppercase",
-                color: "#C4998C",
                 marginBottom: "18px",
               }}
             >

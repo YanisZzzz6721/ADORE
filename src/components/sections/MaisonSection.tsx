@@ -59,14 +59,8 @@ export default function MaisonSection() {
           <div style={{ maxWidth: 460, width: "100%" }}>
             <FadeInUp delay={0.1}>
               <span
+                className="section-eyebrow"
                 style={{
-                  display: "block",
-                  fontSize: "13px",
-                  fontFamily: "var(--font-jost), system-ui, sans-serif",
-                  fontWeight: 400,
-                  letterSpacing: "0.3em",
-                  textTransform: "uppercase",
-                  color: "#C4998C",
                   marginBottom: "28px",
                 }}
               >

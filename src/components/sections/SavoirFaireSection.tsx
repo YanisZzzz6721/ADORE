@@ -101,14 +101,8 @@ function CategoryCard({
       {/* Numéro + label catégorie */}
       <div style={{ marginBottom: "28px" }}>
         <span
+          className="subsection-eyebrow"
           style={{
-            display: "block",
-            fontSize: "13px",
-            fontFamily: "var(--font-jost), system-ui, sans-serif",
-            fontWeight: 400,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "#C4998C",
             marginBottom: "16px",
           }}
         >
@@ -274,14 +268,8 @@ export default function SavoirFaireSection() {
       <div style={{ marginBottom: "clamp(40px, 6vw, 72px)" }}>
         <FadeInUp delay={0.05}>
           <span
+            className="section-eyebrow"
             style={{
-              display: "block",
-              fontSize: "13px",
-              fontFamily: "var(--font-jost), system-ui, sans-serif",
-              fontWeight: 400,
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "#C4998C",
               marginBottom: "18px",
             }}
           >
@@ -357,14 +345,8 @@ export default function SavoirFaireSection() {
         >
           <div style={{ flex: 1, minWidth: "min(100%, 260px)" }}>
             <span
+              className="subsection-eyebrow"
               style={{
-                display: "block",
-                fontSize: "13px",
-                fontFamily: "var(--font-jost), system-ui, sans-serif",
-                fontWeight: 400,
-                letterSpacing: "0.3em",
-                color: "#C4998C",
-                textTransform: "uppercase",
                 marginBottom: "16px",
               }}
             >

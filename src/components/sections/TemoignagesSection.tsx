@@ -80,14 +80,8 @@ export default function TemoignagesSection() {
       >
         <FadeInUp delay={0.05}>
           <span
+            className="section-eyebrow"
             style={{
-              display: "block",
-              fontSize: "13px",
-              fontFamily: "var(--font-jost), system-ui, sans-serif",
-              fontWeight: 400,
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "#C4998C",
               marginBottom: "18px",
             }}
           >
